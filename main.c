@@ -1186,27 +1186,18 @@ void main(int argc, char **argv) {
 	//Clear sprites that IPL may have loaded
 	memset(GFXSPRITES,0,0x4000);
 
-	//Draw the ground on the tilemap, probably inefficient but we're learning here
-	//Tilemap is 64 wide. Fille the entire bottom row with grass
-	for (uint8_t x=0; x<64; x++) {
-		__tile_a_set(x, FLAPPY_GROUND_Y, FLAPPY_GROUND_INDEX);
-	}
-
-	
-
 	//The user can still see nothing of this graphics goodness, so let's re-enable the framebuffer and
 	//tile layer A (the default layer for the console). 
 	//Normal FB enabled (vice 8 bit) because background is loaded into the framebuffer above in 4 bit mode. 
 	//TILEA is where text is printed by default
 	 GFX_REG(GFX_LAYEREN_REG)=GFX_LAYEREN_FB|GFX_LAYEREN_TILEA|GFX_LAYEREN_TILEB|GFX_LAYEREN_SPR;
+	
 
-	//Draw the player as a brick. Need to use our custome tilemap so we have a real sprite or figure
-	//out how sprites work in the graphics engine
-	 
-
-	//Primary game loop
-	uint8_t dy=12;
-	uint8_t dx=12;
+	/*****************************
+	 * this is going to start the game and the rest of this will not run
+	 */
+	tetrapuzz();
+	return;
 
 	 while((MISC_REG(MISC_BTN_REG) & BUTTON_A)==0) {
 
