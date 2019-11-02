@@ -295,6 +295,7 @@ static uint8_t cursor_x, cursor_y;
 
 volatile uint8_t random_piece = 0;	//Used to select a piece "randomly" (but not really)
 uint8_t piece_color = DEFAULT_FG_COLOR;	 //Used to color the moving pieces
+uint8_t color_preserve[BOX_BOARD_RIGHT+1][BOX_BOARD_BOTTOM+1]; //Save piece color for display when the join the horde
 
 uint8_t BOX_piece[4];
 
@@ -735,6 +736,7 @@ void BOX_loc_set_bit(uint8_t X, uint8_t Y)
 	uint8_t shift_index = (Y)%8;		//How much to shift for our bit mask
 
 	BOX_location[X+array_index_offset] |= 1<<shift_index;
+	color_preserve[X][Y] = piece_color;
 	}
 
 void BOX_loc_clear_bit(uint8_t X, uint8_t Y)
@@ -744,6 +746,7 @@ void BOX_loc_clear_bit(uint8_t X, uint8_t Y)
 	uint8_t shift_index = (Y)%8;		//How much to shift for our bit mask
 
 	BOX_location[X+array_index_offset] &= ~(1<<shift_index);
+	color_preserve[X][Y] = 40;
 	}
 
 /********************************
@@ -795,7 +798,7 @@ void BOX_clear_loc(void)
 					{
 					if (BOX_piece[temp_col] & 1<<(temp_row))	//Checks nibbles in Box_piece array
 						{
-						BOX_loc_clear_bit((unsigned char)(x_loc+temp_col),y_loc-temp_row);
+						BOX_loc_clear_bit((unsigned char)(x_loc+temp_col),y_loc-temp_row);;
 						}
 					}
 				}
@@ -898,7 +901,7 @@ void BOX_rewrite_display(uint32_t fgcolor)	//Rewrites entire playing area
 		{
 		for (rows=0; rows<=BOX_BOARD_BOTTOM; rows++)
 			{
-			if(BOX_loc_return_bit(cols,rows)) BOX_draw(cols,rows,fgcolor);
+			if(BOX_loc_return_bit(cols,rows)) BOX_draw(cols,rows,color_preserve[cols][rows]);
 			else BOX_erase(cols,rows);
 			}
 		}
