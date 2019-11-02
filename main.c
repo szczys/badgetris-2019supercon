@@ -30,35 +30,8 @@ extern volatile uint32_t GFXREG[];
 
 uint32_t *GFXSPRITES = (uint32_t *)0x5000C000;
 
-//Define some tilemap data
-#define FLAPPY_GROUND_INDEX 247
-#define FLAPPY_GROUND_Y 19
-#define FLAPPY_BRICK_INDEX 136
-#define FLAPPY_PLAYER_INDEX 184
-
-//Define game parameters
-#define FLAPPY_PIPE_GAP 7
-#define FLAPPY_PIPE_BOTTOM 19
-#define FLAPPY_PIPE_HEIGHT_MIN 2
-#define FLAPPY_PIPE_HEIGHT_MAX 9
-#define FLAPPY_SPEED 1.8
-#define FLAPPY_PLAYER_X 8
-#define FLAPPY_GRAVITY 0.9
-#define FLAPPY_JUMP (-2.0)
-#define FLAPPY_BOTTOM_EXTENT 290
-
-int m_player_y = 16;
-int m_player_x = 16;
-float m_player_velocity = 0.0;
-uint32_t m_score = 0;
-int m_pipe_1_x = 11;
-int m_pipe_1_height = 3;
-int m_pipe_2_x = 27;
-int m_pipe_2_height = 3;
-int m_pipe_3_x = 43;
-int m_pipe_3_height = 3;
-int m_pipe_4_x = 59;
-int m_pipe_4_height = 3;
+//Used to debounce buttons
+#define BUTTON_READ_DELAY		15
 
 //Borrowed this from lcd.c until a better solution comes along :/
 static void __INEFFICIENT_delay(int n) {
@@ -66,7 +39,6 @@ static void __INEFFICIENT_delay(int n) {
 		for (volatile int t=0; t<(1<<11); t++);
 	}
 }
-
 
 //Wait until all buttons are released
 static inline void __button_wait_for_press() {
@@ -105,6 +77,10 @@ static inline void __tile_b_translate(int dx, int dy) {
 	GFX_REG(GFX_TILEB_OFF)=(dy<<16)+(dx &0xffff);
 }
 
+uint32_t counter60hz(void) {
+	return GFX_REG(GFX_VBLCTR_REG);
+}
+
 #include "main.h"
 #include <stdint.h>
 
@@ -120,6 +96,8 @@ void tetrapuzz(void)
 	__INEFFICIENT_delay(200);
 	tetrapuzz_init();
 
+	uint32_t buttondebounce = counter60hz();
+
 	while(1)
 		{
 
@@ -127,33 +105,37 @@ void tetrapuzz(void)
 		//because it gets called more often than the boxes are dropped
 		BOX_inc_random();
 
-		//Service button inputs as necessary
+		if (counter60hz() > buttondebounce) {
+			//Service button inputs as necessary
 
-			if ((MISC_REG(MISC_BTN_REG) & BUTTON_UP)) {	BOX_rotate(1);	}
-			if ((MISC_REG(MISC_BTN_REG) & BUTTON_LEFT)) {	BOX_lt();	}
-			if ((MISC_REG(MISC_BTN_REG) & BUTTON_RIGHT)) {	BOX_rt();	}
-			if ((MISC_REG(MISC_BTN_REG) & BUTTON_DOWN)) {	BOX_dn();	}
+			if ((MISC_REG(MISC_BTN_REG) & BUTTON_UP)) {
+				BOX_rotate(1);
+				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
+			}
+			if ((MISC_REG(MISC_BTN_REG) & BUTTON_LEFT)) {
+				BOX_lt();
+				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
+			}
+			if ((MISC_REG(MISC_BTN_REG) & BUTTON_RIGHT)) {
+				BOX_rt();
+				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
+			}
+			if ((MISC_REG(MISC_BTN_REG) & BUTTON_DOWN)) {
+				BOX_dn();
+				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
+				//Reset drop timer to prevent jitter if you hold the down button
+				wait_until = counter60hz()+BOX_get_delay();
+			}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_SELECT)) {	return;	}
-
-		//FIXME: use fake blocking delay unil non-blocking is ready
-		__INEFFICIENT_delay(100);
-		static uint8_t looptimer = 0;
-		if (++looptimer > 10)
-		{
-			looptimer = 0;
-			tetrapuzz_loop();
 		}
 
 		//Service the loop on a non-blocking delay here
-		/*
-		if (millis() > wait_until)
+		if (counter60hz() > wait_until)
 			{
-			wait_until = millis()+BOX_get_delay();
+			wait_until = counter60hz()+BOX_get_delay();
 			tetrapuzz_loop();
 			}
-		*/
 		}
-
 	}
 
 void tetrapuzz_init(void)
@@ -166,7 +148,7 @@ void tetrapuzz_init(void)
 	BOX_clearscreen();
 	drop_timer_flag = 0;
 	//FIXME: this is part of non-blocking delay
-	//wait_until = millis();
+	wait_until = counter60hz();
 	BOX_start_game();
 	}
 
@@ -278,10 +260,6 @@ Program flow:
 #define BOX_FRAME_RB			178
 #define BOX_SPRITE_00			161
 #define BOX_SPRITE_01			128
-#define BOX_SPRITE_02			129
-#define BOX_SPRITE_03			130
-#define BOX_SPRITE_04			131
-#define BOX_SPRITE_05			132
 
 #define ARRAY_SIZE (((BOX_BOARD_BOTTOM+8)/8) * (BOX_BOARD_RIGHT + 1))
 
@@ -289,7 +267,7 @@ Program flow:
 #define DEFAULT_BG_COLOR	0x000000
 #define DEFAULT_STONE_COLOR	135
 
-#define DEFAULT_DROP_DELAY	400
+#define DEFAULT_DROP_DELAY	24
 
 static uint8_t cursor_x, cursor_y;
 
@@ -560,13 +538,14 @@ uint16_t BOX_get_delay(void)
 	if (BOX_get_score)
 		{
 		uint8_t level = BOX_get_score()/4;
-		uint16_t dropdelay = DEFAULT_DROP_DELAY;
+		int16_t dropdelay = DEFAULT_DROP_DELAY;
 		while(level)
 			{
 			dropdelay -= (dropdelay/5);
 			--level;
-			if (dropdelay<200) return 200;	//Keep speed from becoming insane
+			//if (dropdelay<200) return 200;	//Keep speed from becoming insane
 			}
+		if (dropdelay < 0) return 0;
 		return dropdelay;
 		}
 	return DEFAULT_DROP_DELAY;
@@ -1188,62 +1167,7 @@ void main(int argc, char **argv) {
 	/*****************************
 	 * this is going to start the game and the rest of this will not run
 	 */
+
 	tetrapuzz();
 	return;
-
-	 while((MISC_REG(MISC_BTN_REG) & BUTTON_A)==0) {
-
-		//Move the tile layer b, each 1024 of dx is equal to one tile (or 16 pixels)
-		//NOTE: __tile_a_translate((int)dx, (int)dy);
-		//dx += FLAPPY_SPEED;
-
-		uint8_t butflag = 0;
-		if ((MISC_REG(MISC_BTN_REG) & BUTTON_SELECT)) {
-			tetrapuzz();
-			return;
-			++butflag;
-		}
-		if ((MISC_REG(MISC_BTN_REG) & BUTTON_UP)) {
-			m_player_y -= 16;
-			++butflag;
-		}
-		if ((MISC_REG(MISC_BTN_REG) & BUTTON_DOWN)) {
-			//m_player_y += 16;
-			BOX_print_string("Hello!",3,3,0,0);
-			/*
-			BOX_erase(dx,dy);
-			dy += 1;
-			BOX_draw(dx,dy,237);
-			*/
-
-			/*
-			GFXTILEMAPA[dy*GFX_TILEMAP_W+dx] = 0;
-			dy += 1;
-			GFXTILEMAPA[dy*GFX_TILEMAP_W+dx] = 237;
-			*/
-			++butflag;
-		}
-		if ((MISC_REG(MISC_BTN_REG) & BUTTON_LEFT)) {
-			//m_player_x -= 16;
-			//tetrapuzz_init();
-			tetrapuzz_init();
-			++butflag;
-		}
-		if ((MISC_REG(MISC_BTN_REG) & BUTTON_RIGHT)) {
-			m_player_x += 16;
-			++butflag;
-		}
-
-		//Draw the player sprite
-		//__sprite_set(0, m_player_x, m_player_y, 16, 16, FLAPPY_PLAYER_INDEX, 0);
-		if (butflag) __INEFFICIENT_delay(200);
-	 }
-
-	 //Print game over
-	 fprintf(console, "\03310X\03310YGAME OVER!\nScore: %dm", (m_score/1000));
-
-	 //Wait for user to release whatever buttons they were pressing and to press a new one
-	__button_wait_for_release();
-	__INEFFICIENT_delay(200);
- 	__button_wait_for_press();
 }
