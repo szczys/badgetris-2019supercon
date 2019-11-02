@@ -259,21 +259,24 @@ Program flow:
 #define BOX_FRAME_THICKNESS		4
 #define BOX_FRAMECOLOR			0xFFFFFF
 //Values for frame around score
-#define BOX_GAMETITLE_Y			8
+#define BOX_GAMETITLE_Y			5
 #define BOX_GAMEOVER_X			11
 #define BOX_GAMEOVER_Y			10
 #define BOX_SCOREBOX_X			17
-#define BOX_SCOREBOX_Y			14
+#define BOX_SCOREBOX_Y			11
 #define BOX_SCOREBOX_WIDTH		1
 #define BOX_SCOREBOX_HEIGHT		1
 
 //Sprite Indices
-#define BOX_FRAME_L				144
-#define BOX_FRAME_R				146
-#define BOX_FRAME_B				161
-#define BOX_FRAME_LB			160
-#define BOX_FRAME_RB			162
-#define BOX_SPRITE_00			145
+#define BOX_FRAME_LT			144
+#define BOX_FRAME_RT			146
+#define BOX_FRAME_T				145
+#define BOX_FRAME_L				160
+#define BOX_FRAME_R				162
+#define BOX_FRAME_B				177
+#define BOX_FRAME_LB			176
+#define BOX_FRAME_RB			178
+#define BOX_SPRITE_00			161
 #define BOX_SPRITE_01			128
 #define BOX_SPRITE_02			129
 #define BOX_SPRITE_03			130
@@ -291,6 +294,7 @@ Program flow:
 static uint8_t cursor_x, cursor_y;
 
 volatile uint8_t random_piece = 0;	//Used to select a piece "randomly" (but not really)
+uint8_t piece_color = DEFAULT_FG_COLOR;	 //Used to color the moving pieces
 
 uint8_t BOX_piece[4];
 
@@ -601,20 +605,6 @@ void BOX_erase(uint8_t X, uint8_t Y)
 
 void BOX_pregame(void)
 	{
-	/*
-	//Draw fancy background
-	tft_set_write_area(0,0,319,239);
-	TFT_24_7789_Write_Command(0x2C);
-	uint16_t patternx, patterny, hue;
-	for (patterny = 0; patterny<240; patterny++)
-		{
-		for (patternx = 0; patternx<320; patternx++)
-			{
-			hue = patternx ^ patterny;
-			TFT_24_7789_Write_Data3(hue,40,hue);
-			}
-		}
-	*/
 	//Draw frame around grid
 	for (uint8_t vert = 0; vert<20; vert++)
 	{
@@ -630,23 +620,36 @@ void BOX_pregame(void)
 		__tile_a_set(hor,19,BOX_FRAME_B);
 	}
 	
-	/*
-	tft_fill_area(BOX_FRAMEX, BOX_FRAMEY, BOX_FRAME_THICKNESS-1, BOX_MULTIPLIER*(BOX_BOARD_BOTTOM+1), BOX_FRAMECOLOR);
-	tft_fill_area(BOX_FRAMEX, BOX_FRAMEY+BOX_MULTIPLIER*(BOX_BOARD_BOTTOM+1), (BOX_MULTIPLIER*(BOX_BOARD_RIGHT + 1))+(BOX_FRAME_THICKNESS*2)-1, BOX_FRAME_THICKNESS-1, 0xFFFFFF);
-	tft_fill_area(BOX_FRAMEX+(BOX_MULTIPLIER*(BOX_BOARD_RIGHT+1))+BOX_FRAME_THICKNESS, BOX_FRAMEY, BOX_FRAME_THICKNESS-1, BOX_MULTIPLIER*(BOX_BOARD_BOTTOM+1), 0xFFFFFF);
-	*/
+	//Frame around game title
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y-1,BOX_FRAME_LT);
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y,BOX_FRAME_L);
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y+1,BOX_FRAME_LB);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y-1,BOX_FRAME_RT);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y,BOX_FRAME_R);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y+1,BOX_FRAME_RB);
+	for (uint8_t i=0; i<10; i++) { 
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y-1,BOX_FRAME_T);
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y+1,BOX_FRAME_B);
+	}
 
 	//Show game title
 	BOX_print_string(message1,BOX_SCOREBOX_X,BOX_GAMETITLE_Y,0xFFFFFF,DEFAULT_BG_COLOR);
 	
-	/*
-	//Get score area ready
-	tft_fill_area(BOX_SCOREBOX_X, BOX_SCOREBOX_Y, BOX_SCOREBOX_WIDTH, BOX_SCOREBOX_HEIGHT, BOX_FRAMECOLOR);
-	tft_fill_area(BOX_SCOREBOX_X+BOX_FRAME_THICKNESS, BOX_SCOREBOX_Y+BOX_FRAME_THICKNESS, BOX_SCOREBOX_WIDTH-(2*BOX_FRAME_THICKNESS), BOX_SCOREBOX_HEIGHT-(2*BOX_FRAME_THICKNESS), DEFAULT_BG_COLOR);
-	*/
 	//Show game area
-	BOX_rewrite_display(DEFAULT_FG_COLOR);
+	BOX_rewrite_display(piece_color);
 	
+
+	//Frame around score
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y-1,BOX_FRAME_LT);
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y,BOX_FRAME_L);
+	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y+1,BOX_FRAME_LB);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y-1,BOX_FRAME_RT);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y,BOX_FRAME_R);
+	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y+1,BOX_FRAME_RB);
+	for (uint8_t i=0; i<10; i++) { 
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
+	}
 	BOX_update_score();
 
 	}
@@ -696,7 +699,7 @@ void BOX_update_score(void)
 	if (hundred || ten) mystring[i++] = ten+'0';
 	if (hundred || ten || one) mystring[i++] = one+'0';
 	
-	BOX_print_string(mystring, BOX_SCOREBOX_X,BOX_SCOREBOX_Y+1,0xFFFFFF,DEFAULT_BG_COLOR);
+	BOX_print_string(mystring, BOX_SCOREBOX_X+8,BOX_SCOREBOX_Y,0xFFFFFF,DEFAULT_BG_COLOR);
 	}
 
 void BOX_print_string(const int8_t * buf, uint16_t x_pixel, uint8_t y_pixel, uint32_t fgcolor, uint32_t bgcolor)
@@ -859,7 +862,7 @@ void BOX_write_piece(void)  //Writes piece to display
 				if (BOX_piece[i] & 1<<j)
 					{
 					//TODO: change this for different colored playing pieces
-					BOX_draw(x_loc+i, y_loc-j, DEFAULT_FG_COLOR);
+					BOX_draw(x_loc+i, y_loc-j, piece_color);
 					}
 				}
 			}
@@ -913,6 +916,7 @@ void BOX_spawn(void)
 	x_loc = 4;
 	y_loc = 1;
 	cur_piece = random_piece;
+	piece_color = DEFAULT_FG_COLOR+cur_piece;
 	rotate = 0;
 
 	BOX_load_reference(cur_piece, rotate);  //load from reference
