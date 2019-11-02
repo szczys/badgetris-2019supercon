@@ -119,16 +119,16 @@ void tetrapuzz(void)
 	{
 	__INEFFICIENT_delay(200);
 	tetrapuzz_init();
-	
+
 	while(1)
 		{
-		
+
 		//This is just a rolling increment kind of fake random
 		//because it gets called more often than the boxes are dropped
 		BOX_inc_random();
-		
+
 		//Service button inputs as necessary
-		
+
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_UP)) {	BOX_rotate(1);	}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_LEFT)) {	BOX_lt();	}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_RIGHT)) {	BOX_rt();	}
@@ -155,10 +155,10 @@ void tetrapuzz(void)
 		}
 
 	}
- 
+
 void tetrapuzz_init(void)
 	{
-	
+
 	//Pull TMR1 value for a bit of not-really-but-kinda-random number
 	//FIXME: Need random number here
 	BOX_seed_random((unsigned char) 0xFC);
@@ -173,7 +173,7 @@ void tetrapuzz_init(void)
 void tetrapuzz_loop(void)
 	{
 	BOX_dn();
-	
+
 	if (BOX_end_game())
 		{
 		//Print game ending information
@@ -191,7 +191,7 @@ void tetrapuzz_loop(void)
 void tetrapuzz_pause(void)
 	{
 	//FIXME: we probably don't need a pause mode.
-	/* deprecated camera badge code: 
+	/* deprecated camera badge code:
 	if(butpress)
 		{
 		BOX_start_game();
@@ -295,7 +295,6 @@ static uint8_t cursor_x, cursor_y;
 
 volatile uint8_t random_piece = 0;	//Used to select a piece "randomly" (but not really)
 uint8_t piece_color = DEFAULT_FG_COLOR;	 //Used to color the moving pieces
-uint8_t color_preserve[BOX_BOARD_RIGHT+1][BOX_BOARD_BOTTOM+1]; //Save piece color for display when the join the horde
 
 uint8_t BOX_piece[4];
 
@@ -519,7 +518,7 @@ const uint8_t BOX_reference[7][4][4] = {
 };
 
 //Variables
-uint8_t BOX_location[ARRAY_SIZE];
+uint8_t BOX_location[BOX_BOARD_RIGHT+1][BOX_BOARD_BOTTOM+1];
 uint8_t x_loc, y_loc;     //Bottom left index of each piece
 uint8_t cur_piece = 0;	//Index for BOX_reference
 uint8_t rotate = 0;		//Index for piece rotation
@@ -599,7 +598,7 @@ void BOX_erase(uint8_t X, uint8_t Y)
 	//Erase box
 	uint8_t row = Y*BOX_MULTIPLIER;
 	uint16_t col = X*BOX_MULTIPLIER;
-	
+
 	//__sprite_set(0, col, row, BOX_MULTIPLIER, BOX_MULTIPLIER, 0, 0);
 	__tile_a_set(col+BOX_XOFFSET,row+BOX_YOFFSET,BOX_SPRITE_00);
 	}
@@ -614,13 +613,13 @@ void BOX_pregame(void)
 			__tile_a_set(BOX_XOFFSET-1,vert,BOX_FRAME_L);
 		}
 	}
-	
+
 	__tile_a_set(BOX_XOFFSET-1,19,BOX_FRAME_LB);
 	__tile_a_set(BOX_XOFFSET+BOX_BOARD_RIGHT+1,19,BOX_FRAME_RB);
 	for (uint8_t hor=BOX_XOFFSET; hor<=BOX_BOARD_RIGHT+BOX_XOFFSET; hor++) {
 		__tile_a_set(hor,19,BOX_FRAME_B);
 	}
-	
+
 	//Frame around game title
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y-1,BOX_FRAME_LT);
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y,BOX_FRAME_L);
@@ -628,17 +627,17 @@ void BOX_pregame(void)
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y-1,BOX_FRAME_RT);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y,BOX_FRAME_R);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y+1,BOX_FRAME_RB);
-	for (uint8_t i=0; i<10; i++) { 
+	for (uint8_t i=0; i<10; i++) {
 		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y-1,BOX_FRAME_T);
 		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y+1,BOX_FRAME_B);
 	}
 
 	//Show game title
 	BOX_print_string(message1,BOX_SCOREBOX_X,BOX_GAMETITLE_Y,0xFFFFFF,DEFAULT_BG_COLOR);
-	
+
 	//Show game area
 	BOX_rewrite_display(piece_color);
-	
+
 
 	//Frame around score
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y-1,BOX_FRAME_LT);
@@ -647,7 +646,7 @@ void BOX_pregame(void)
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y-1,BOX_FRAME_RT);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y,BOX_FRAME_R);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y+1,BOX_FRAME_RB);
-	for (uint8_t i=0; i<10; i++) { 
+	for (uint8_t i=0; i<10; i++) {
 		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
 		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
 	}
@@ -659,10 +658,14 @@ void BOX_start_game(void)
 	{
 	score = 0; //Reset score
 	game_over = 0;
-	
+
 	//Set up blank array
-	uint16_t i;
-	for (i=0; i<ARRAY_SIZE; i++) { BOX_location[i] = 0x00; }
+	uint16_t i, j;
+	for (i=0; i<(BOX_BOARD_RIGHT+1); i++) {
+		for (j=0; j<(BOX_BOARD_BOTTOM+1); j++) {
+			BOX_location[i][j] = 0;
+		}
+	}
 	BOX_pregame();
 	BOX_spawn();
 	}
@@ -699,12 +702,12 @@ void BOX_update_score(void)
 	if (hundred) mystring[i++] = hundred+'0';
 	if (hundred || ten) mystring[i++] = ten+'0';
 	if (hundred || ten || one) mystring[i++] = one+'0';
-	
+
 	BOX_print_string(mystring, BOX_SCOREBOX_X+8,BOX_SCOREBOX_Y,0xFFFFFF,DEFAULT_BG_COLOR);
 	}
 
 void BOX_print_string(const int8_t * buf, uint16_t x_pixel, uint8_t y_pixel, uint32_t fgcolor, uint32_t bgcolor)
-	{ 
+	{
 	fprintf(console, "\033%dX\033%dY%s\n", x_pixel, y_pixel,buf);
 	}
 
@@ -719,35 +722,17 @@ void BOX_print_string(const int8_t * buf, uint16_t x_pixel, uint8_t y_pixel, uin
  * BOX_loc_clear_bit
  ************************************************/
 
-uint8_t BOX_loc_return_bit(uint8_t X, uint8_t Y)
-	{
-	//Calculate array index and shift amount
-	uint8_t array_index_offset = ((Y)/8)*(BOX_BOARD_RIGHT+1);
-	uint8_t shift_index = (Y)%8;		//How much to shift for our bit mask
+uint8_t BOX_loc_return_bit(uint8_t X, uint8_t Y) {
+	return BOX_location[X][Y];
+}
 
-	if (BOX_location[X+array_index_offset] & 1<<shift_index) return 1;
-	else return 0;
-	}
+void BOX_loc_set_bit(uint8_t X, uint8_t Y, uint8_t color) {
+	BOX_location[X][Y] = color;
+}
 
-void BOX_loc_set_bit(uint8_t X, uint8_t Y)
-	{
-	//Calculate array index and shift amount
-	uint8_t array_index_offset = ((Y)/8)*(BOX_BOARD_RIGHT+1);
-	uint8_t shift_index = (Y)%8;		//How much to shift for our bit mask
-
-	BOX_location[X+array_index_offset] |= 1<<shift_index;
-	color_preserve[X][Y] = piece_color;
-	}
-
-void BOX_loc_clear_bit(uint8_t X, uint8_t Y)
-	{
-	//Calculate array index and shift amount
-	uint8_t array_index_offset = ((Y)/8)*(BOX_BOARD_RIGHT+1);
-	uint8_t shift_index = (Y)%8;		//How much to shift for our bit mask
-
-	BOX_location[X+array_index_offset] &= ~(1<<shift_index);
-	color_preserve[X][Y] = 40;
-	}
+void BOX_loc_clear_bit(uint8_t X, uint8_t Y) {
+	BOX_location[X][Y] = 0;
+}
 
 /********************************
  * Functions that handle bits in BOX_piece[]
@@ -773,7 +758,7 @@ void BOX_store_loc(void)
 					{
 					if (BOX_piece[temp_col] & 1<<(temp_row))	//Checks nibbles in Box_piece array
 						{
-						BOX_loc_set_bit((unsigned char)(x_loc+temp_col),y_loc-temp_row);
+						BOX_loc_set_bit((unsigned char)(x_loc+temp_col),y_loc-temp_row, piece_color);
 						}
 					}
 				}
@@ -864,7 +849,6 @@ void BOX_write_piece(void)  //Writes piece to display
 				{
 				if (BOX_piece[i] & 1<<j)
 					{
-					//TODO: change this for different colored playing pieces
 					BOX_draw(x_loc+i, y_loc-j, piece_color);
 					}
 				}
@@ -884,7 +868,6 @@ void BOX_clear_piece(void)  //Clears piece from display
 				{
 				if (BOX_piece[i] & 1<<j)
 					{
-					//TODO: change this for different colored playing pieces
 					BOX_erase(x_loc+i, y_loc-j);
 					}
 				}
@@ -895,13 +878,14 @@ void BOX_clear_piece(void)  //Clears piece from display
 void BOX_rewrite_display(uint32_t fgcolor)	//Rewrites entire playing area
 	{
 	//printf(cls);
-	
+
 	uint8_t cols, rows;
 	for (cols=0; cols<=BOX_BOARD_RIGHT; cols++)
 		{
 		for (rows=0; rows<=BOX_BOARD_BOTTOM; rows++)
 			{
-			if(BOX_loc_return_bit(cols,rows)) BOX_draw(cols,rows,color_preserve[cols][rows]);
+			uint8_t boxColor = BOX_loc_return_bit(cols,rows);
+			if(boxColor) BOX_draw(cols,rows,boxColor);
 			else BOX_erase(cols,rows);
 			}
 		}
@@ -984,7 +968,7 @@ void BOX_line_check(void)
 	//Check every line on the playing area for complete rows and record them in an array
 	uint8_t complete_lines[4];	//There will never be more than 4 complete rows
 	uint8_t temp_index = 0;		//Index for complete_lines[]
-  
+
 	uint8_t board_rows;
 	for (board_rows=0; board_rows<=BOX_BOARD_BOTTOM; board_rows++)
 		{
@@ -1046,7 +1030,8 @@ void BOX_line_check(void)
 				//If there are rows left to read from, do so.
 				if (rows_left_to_read)
 					{
-					if (BOX_loc_return_bit(col,read_from_row)) BOX_loc_set_bit(col, write_to_row);
+					uint8_t readColor = BOX_loc_return_bit(col,read_from_row);
+					if (readColor) BOX_loc_set_bit(col, write_to_row, readColor);
 					else BOX_loc_clear_bit(col, write_to_row);
 					}
 				//There are no rows left to read from, fill with 0
@@ -1137,7 +1122,7 @@ void main(int argc, char **argv) {
 		MISC_REG(MISC_LED_REG)=(i<<i);
 		__INEFFICIENT_delay(100);
 	}
-	
+
 
 	//Set up the framebuffer address.
 	GFX_REG(GFX_FBADDR_REG)=((uint32_t)fbmem)&0xFFFFFF;
@@ -1152,10 +1137,10 @@ void main(int argc, char **argv) {
 	int gfx_tiles_err = gfx_load_tiles_mem(GFXTILES, &GFXPAL[0], &_binary_badgetris_tileset_png_start, (&_binary_badgetris_tileset_png_end-&_binary_badgetris_tileset_png_start));
 	printf("Tiles initialized err=%d\n", gfx_tiles_err);
 
-	
+
 	//The IPL leaves us with a tileset that has tile 0 to 127 map to ASCII characters, so we do not need to
 	//load anything specific for this. In order to get some text out, we can use the /dev/console device
-	//that will use these tiles to put text in a tilemap. It uses escape codes to do so, see 
+	//that will use these tiles to put text in a tilemap. It uses escape codes to do so, see
 	//ipl/gloss/console_out.c for more info.
 	//Note that without the setvbuf command, no characters would be printed until 1024 characters are
 	//buffered.
@@ -1183,7 +1168,7 @@ void main(int argc, char **argv) {
 	//Set map to tilemap B, clear tilemap, set attr to 0
 	//Not sure yet what attr does, but tilemap be is important as it will have the effect of layering
 	//on top of our scrolling game
-	fprintf(console, "\0331M\033C\0330A"); 
+	fprintf(console, "\0331M\033C\0330A");
 	//Note that without the newline at the end, all printf's would stay in the buffer.
 
 
@@ -1194,11 +1179,11 @@ void main(int argc, char **argv) {
 	memset(GFXSPRITES,0,0x4000);
 
 	//The user can still see nothing of this graphics goodness, so let's re-enable the framebuffer and
-	//tile layer A (the default layer for the console). 
-	//Normal FB enabled (vice 8 bit) because background is loaded into the framebuffer above in 4 bit mode. 
+	//tile layer A (the default layer for the console).
+	//Normal FB enabled (vice 8 bit) because background is loaded into the framebuffer above in 4 bit mode.
 	//TILEA is where text is printed by default
 	 GFX_REG(GFX_LAYEREN_REG)=GFX_LAYEREN_FB|GFX_LAYEREN_TILEA|GFX_LAYEREN_TILEB|GFX_LAYEREN_SPR;
-	
+
 
 	/*****************************
 	 * this is going to start the game and the rest of this will not run
@@ -1211,7 +1196,7 @@ void main(int argc, char **argv) {
 		//Move the tile layer b, each 1024 of dx is equal to one tile (or 16 pixels)
 		//NOTE: __tile_a_translate((int)dx, (int)dy);
 		//dx += FLAPPY_SPEED;
-			
+
 		uint8_t butflag = 0;
 		if ((MISC_REG(MISC_BTN_REG) & BUTTON_SELECT)) {
 			tetrapuzz();
@@ -1230,7 +1215,7 @@ void main(int argc, char **argv) {
 			dy += 1;
 			BOX_draw(dx,dy,237);
 			*/
-			
+
 			/*
 			GFXTILEMAPA[dy*GFX_TILEMAP_W+dx] = 0;
 			dy += 1;

@@ -21,7 +21,7 @@ uint8_t BOX_end_game(void);
 void BOX_update_score(void);
 void BOX_print_string(const int8_t * buf, uint16_t  x_pixel, uint8_t y_pixel, uint32_t  fgcolor, uint32_t  bgcolor);
 uint8_t BOX_loc_return_bit(uint8_t X, uint8_t Y);
-void BOX_loc_set_bit(uint8_t X, uint8_t Y);
+void BOX_loc_set_bit(uint8_t X, uint8_t Y, uint8_t color);
 void BOX_loc_clear_bit(uint8_t X, uint8_t Y);
 void BOX_store_loc(void);
 void BOX_clear_loc(void);
