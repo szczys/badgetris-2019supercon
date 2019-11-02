@@ -590,7 +590,7 @@ void BOX_draw(uint8_t X, uint8_t Y, uint32_t color)
 	uint8_t row = Y*BOX_MULTIPLIER;
 	uint16_t col = X*BOX_MULTIPLIER;
 
-	__tile_a_set(col+BOX_XOFFSET,row+BOX_YOFFSET,color);
+	__tile_b_set(col+BOX_XOFFSET,row+BOX_YOFFSET,color);
 	}
 
 void BOX_erase(uint8_t X, uint8_t Y)
@@ -600,7 +600,7 @@ void BOX_erase(uint8_t X, uint8_t Y)
 	uint16_t col = X*BOX_MULTIPLIER;
 
 	//__sprite_set(0, col, row, BOX_MULTIPLIER, BOX_MULTIPLIER, 0, 0);
-	__tile_a_set(col+BOX_XOFFSET,row+BOX_YOFFSET,BOX_SPRITE_00);
+	__tile_b_set(col+BOX_XOFFSET,row+BOX_YOFFSET,BOX_SPRITE_00);
 	}
 
 void BOX_pregame(void)
@@ -608,28 +608,28 @@ void BOX_pregame(void)
 	//Draw frame around grid
 	for (uint8_t vert = 0; vert<20; vert++)
 	{
-		__tile_a_set(BOX_BOARD_RIGHT+1+BOX_XOFFSET,vert,BOX_FRAME_R);
+		__tile_b_set(BOX_BOARD_RIGHT+1+BOX_XOFFSET,vert,BOX_FRAME_R);
 		if (BOX_XOFFSET > 0) {
-			__tile_a_set(BOX_XOFFSET-1,vert,BOX_FRAME_L);
+			__tile_b_set(BOX_XOFFSET-1,vert,BOX_FRAME_L);
 		}
 	}
 
-	__tile_a_set(BOX_XOFFSET-1,19,BOX_FRAME_LB);
-	__tile_a_set(BOX_XOFFSET+BOX_BOARD_RIGHT+1,19,BOX_FRAME_RB);
+	__tile_b_set(BOX_XOFFSET-1,19,BOX_FRAME_LB);
+	__tile_b_set(BOX_XOFFSET+BOX_BOARD_RIGHT+1,19,BOX_FRAME_RB);
 	for (uint8_t hor=BOX_XOFFSET; hor<=BOX_BOARD_RIGHT+BOX_XOFFSET; hor++) {
-		__tile_a_set(hor,19,BOX_FRAME_B);
+		__tile_b_set(hor,19,BOX_FRAME_B);
 	}
 
 	//Frame around game title
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y-1,BOX_FRAME_LT);
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y,BOX_FRAME_L);
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y+1,BOX_FRAME_LB);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y-1,BOX_FRAME_RT);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y,BOX_FRAME_R);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y+1,BOX_FRAME_RB);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y-1,BOX_FRAME_LT);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y,BOX_FRAME_L);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_GAMETITLE_Y+1,BOX_FRAME_LB);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y-1,BOX_FRAME_RT);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y,BOX_FRAME_R);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_GAMETITLE_Y+1,BOX_FRAME_RB);
 	for (uint8_t i=0; i<10; i++) {
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y-1,BOX_FRAME_T);
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y+1,BOX_FRAME_B);
+		__tile_b_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y-1,BOX_FRAME_T);
+		__tile_b_set(BOX_SCOREBOX_X+i,BOX_GAMETITLE_Y+1,BOX_FRAME_B);
 	}
 
 	//Show game title
@@ -640,17 +640,23 @@ void BOX_pregame(void)
 
 
 	//Frame around score
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y-1,BOX_FRAME_LT);
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y,BOX_FRAME_L);
-	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y+1,BOX_FRAME_LB);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y-1,BOX_FRAME_RT);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y,BOX_FRAME_R);
-	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y+1,BOX_FRAME_RB);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y-1,BOX_FRAME_LT);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y,BOX_FRAME_L);
+	__tile_b_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y+1,BOX_FRAME_LB);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y-1,BOX_FRAME_RT);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y,BOX_FRAME_R);
+	__tile_b_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y+1,BOX_FRAME_RB);
 	for (uint8_t i=0; i<10; i++) {
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
+		__tile_b_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
+		__tile_b_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
 	}
 	BOX_update_score();
+
+	for (uint8_t i=0; i<64; i++) {
+		for (uint8_t j=0; j<64; j++) {
+			__tile_a_set(i,j,147);
+		}
+	}
 
 	}
 
