@@ -146,6 +146,7 @@ void tetrapuzz_init(void)
 	BOX_seed_random((unsigned char) 0xFC);
 
 	BOX_clearscreen();
+	
 	drop_timer_flag = 0;
 	//FIXME: this is part of non-blocking delay
 	wait_until = counter60hz();
@@ -553,9 +554,6 @@ uint16_t BOX_get_delay(void)
 
 void BOX_clearscreen(void)
 	{
-	//Draw black on the display
-	//FIXME:
-	//tft_fill_area(0, 0, 319, 239, 0x000000);
 	//Clear both tilemaps
 	memset(GFXTILEMAPA,0,0x4000);
 	memset(GFXTILEMAPB,0,0x4000);
@@ -630,6 +628,14 @@ void BOX_pregame(void)
 		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
 	}
 	BOX_update_score();
+
+	/*
+	for (uint8_t i=0; i<64; i++) {
+		for (uint8_t j=0; j<64; j++) {
+			__tile_b_set(i,j,147);
+		}
+	}
+	*/
 
 	}
 
