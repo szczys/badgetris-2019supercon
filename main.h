@@ -7,8 +7,7 @@ void tetrapuzz_pause(void);
 void tetrapuzz_gameover(void);
 
 //Prototypes
-void BOX_seed_random(unsigned char);
-void BOX_inc_random(void);
+uint8_t BOX_get_random_piece(void);
 uint8_t BOX_get_score(void);
 uint16_t  BOX_get_delay(void);
 void BOX_clearscreen(void);

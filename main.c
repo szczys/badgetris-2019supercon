@@ -100,11 +100,6 @@ void tetrapuzz(void)
 
 	while(1)
 		{
-
-		//This is just a rolling increment kind of fake random
-		//because it gets called more often than the boxes are dropped
-		BOX_inc_random();
-
 		if (counter60hz() > buttondebounce) {
 			//Service button inputs as necessary
 
@@ -140,15 +135,10 @@ void tetrapuzz(void)
 
 void tetrapuzz_init(void)
 	{
-
-	//Pull TMR1 value for a bit of not-really-but-kinda-random number
-	//FIXME: Need random number here
-	BOX_seed_random((unsigned char) 0xFC);
-
 	BOX_clearscreen();
 	
 	drop_timer_flag = 0;
-	//FIXME: this is part of non-blocking delay
+
 	wait_until = counter60hz();
 	BOX_start_game();
 	}
@@ -519,15 +509,49 @@ const uint8_t message4[] = { "Lines:" };
  *   be used.                  *
  *******************************/
 
-void BOX_seed_random(uint8_t seed)
-	{
-	if (seed > 6) random_piece = 0;
-	else random_piece = seed;
+
+/* Returns a number 0..6 representing the next piece to use.
+*  This will pull all six pieces in random order, then
+*  generate a new random set of the six when necessary.
+*/
+uint8_t BOX_get_random_piece(void) {
+	/* Make a randomized array
+	*  Prewind the next piece and send the prewind from last time
+	*  If the new prewind is the last in the array, make a new random array
+	*/
+
+	//Line things up for the first run
+	static uint8_t prewind_next_choice = 42;
+	static uint8_t next_random_piece_idx = 7;
+	static uint8_t bag_of_pieces[7] = {0,1,2,3,4,5,6};
+	if (prewind_next_choice > 6) prewind_next_choice = (MISC_REG(MISC_RNG_REG) % 7);
+
+	//This is what we'll send back at the end of the function
+	uint8_t piece_to_return = prewind_next_choice;
+	
+	//Check and generate a new randomized array if necessary
+	if (next_random_piece_idx > 6) {
+		//Blank out the array
+		for (uint8_t i=0; i<7; i++) bag_of_pieces[i] = 42;
+		//Randomly fill array with all available pieces
+		for (uint8_t i=0; i<7; i++) {
+			while(1) {
+				uint8_t rand_idx = (MISC_REG(MISC_RNG_REG) % 7);
+				if (bag_of_pieces[rand_idx] > 6) {
+					bag_of_pieces[rand_idx] = i;
+					break;
+				}
+			}
+		}
+		//Reset the tracking index since we have a new array
+		next_random_piece_idx = 0;
 	}
-void BOX_inc_random(void)
-	{
-	if (++random_piece > 6) random_piece = 0;
-	}
+
+	//Prewind the piece for the next time this function is called and inc the idx
+	prewind_next_choice = bag_of_pieces[next_random_piece_idx++];
+
+	return piece_to_return;
+}
 
 uint8_t BOX_get_score(void)
 	{
@@ -887,7 +911,7 @@ void BOX_spawn(void)
 	printf("BOX_spawn start\n");
 	x_loc = 4;
 	y_loc = 1;
-	cur_piece = random_piece;
+	cur_piece = BOX_get_random_piece();
 	piece_color = DEFAULT_FG_COLOR+cur_piece;
 	rotate = 0;
 
