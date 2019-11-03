@@ -103,7 +103,7 @@ void tetrapuzz(void)
 		if (counter60hz() > buttondebounce) {
 			//Service button inputs as necessary
 
-			if ((MISC_REG(MISC_BTN_REG) & BUTTON_UP)) {
+			if ((MISC_REG(MISC_BTN_REG) & (BUTTON_UP | BUTTON_A))) {
 				BOX_rotate(1);
 				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
 			}
@@ -676,12 +676,22 @@ void BOX_start_game(void)
 
 void BOX_show_gameover(void)
 	{
-	/*
 	//Show game title
-	tft_fill_area(BOX_SCOREBOX_X, BOX_GAMEOVER_Y, BOX_SCOREBOX_WIDTH, BOX_SCOREBOX_HEIGHT, BOX_FRAMECOLOR);
-	tft_fill_area(BOX_SCOREBOX_X+BOX_FRAME_THICKNESS, BOX_GAMEOVER_Y+BOX_FRAME_THICKNESS, BOX_SCOREBOX_WIDTH-(2*BOX_FRAME_THICKNESS), BOX_SCOREBOX_HEIGHT-(2*BOX_FRAME_THICKNESS), 0xFF0000);
-	*/
+	for (uint8_t i=0; i<9; i++) {
+		__tile_b_set(BOX_GAMEOVER_X+i,BOX_GAMEOVER_Y-1,BOX_FRAME_T);
+		//__tile_b_set(BOX_GAMEOVER_X+i,BOX_GAMEOVER_Y,BOX_BLACKSQUARE);
+		__tile_b_set(BOX_GAMEOVER_X+i,BOX_GAMEOVER_Y+1,BOX_FRAME_B);
+	}
+	__tile_b_set(BOX_GAMEOVER_X-1,BOX_GAMEOVER_Y-1,BOX_FRAME_LT);
+	__tile_b_set(BOX_GAMEOVER_X+9,BOX_GAMEOVER_Y-1,BOX_FRAME_RT);
+	__tile_b_set(BOX_GAMEOVER_X-1,BOX_GAMEOVER_Y,BOX_FRAME_L);
+	__tile_b_set(BOX_GAMEOVER_X+9,BOX_GAMEOVER_Y,BOX_FRAME_R);
+	__tile_b_set(BOX_GAMEOVER_X-1,BOX_GAMEOVER_Y+1,BOX_FRAME_LB);
+	__tile_b_set(BOX_GAMEOVER_X+9,BOX_GAMEOVER_Y+1,BOX_FRAME_RB);
+
 	BOX_print_string(message3,BOX_GAMEOVER_X,BOX_GAMEOVER_Y,0xFFFF00,0xFF0000);
+
+	__tile_b_set(BOX_GAMEOVER_X+4,BOX_GAMEOVER_Y,BOX_BLACKSQUARE);
 	}
 
 uint8_t BOX_end_game(void)
