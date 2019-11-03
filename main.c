@@ -249,6 +249,7 @@ Program flow:
 #define BOX_FRAME_B				177
 #define BOX_FRAME_LB			176
 #define BOX_FRAME_RB			178
+#define BOX_BLACKSQUARE			148
 #define BOX_SPRITE_00			161
 #define BOX_SPRITE_01			128
 
@@ -566,7 +567,7 @@ uint16_t BOX_get_delay(void)
 		int16_t dropdelay = DEFAULT_DROP_DELAY;
 		while(level)
 			{
-			dropdelay -= (dropdelay/5);
+			dropdelay -= (dropdelay/8);
 			--level;
 			//if (dropdelay<200) return 200;	//Keep speed from becoming insane
 			}
@@ -641,25 +642,19 @@ void BOX_pregame(void)
 
 
 	//Frame around score
+	for (uint8_t i=0; i<10; i++) {
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y,BOX_BLACKSQUARE);
+		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
+	}
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y-1,BOX_FRAME_LT);
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y,BOX_FRAME_L);
 	__tile_a_set(BOX_SCOREBOX_X-1,BOX_SCOREBOX_Y+1,BOX_FRAME_LB);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y-1,BOX_FRAME_RT);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y,BOX_FRAME_R);
 	__tile_a_set(BOX_SCOREBOX_X+10,BOX_SCOREBOX_Y+1,BOX_FRAME_RB);
-	for (uint8_t i=0; i<10; i++) {
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y-1,BOX_FRAME_T);
-		__tile_a_set(BOX_SCOREBOX_X+i,BOX_SCOREBOX_Y+1,BOX_FRAME_B);
-	}
+	
 	BOX_update_score();
-
-	/*
-	for (uint8_t i=0; i<64; i++) {
-		for (uint8_t j=0; j<64; j++) {
-			__tile_b_set(i,j,147);
-		}
-	}
-	*/
 
 	}
 
