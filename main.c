@@ -242,11 +242,11 @@ Program flow:
 #define BOX_FRAME_THICKNESS		4
 #define BOX_FRAMECOLOR			0xFFFFFF
 //Values for frame around score
-#define BOX_GAMETITLE_Y			5
+#define BOX_GAMETITLE_Y			2
 #define BOX_GAMEOVER_X			11
 #define BOX_GAMEOVER_Y			10
 #define BOX_SCOREBOX_X			17
-#define BOX_SCOREBOX_Y			11
+#define BOX_SCOREBOX_Y			14
 #define BOX_SCOREBOX_WIDTH		1
 #define BOX_SCOREBOX_HEIGHT		1
 
