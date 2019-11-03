@@ -1153,7 +1153,7 @@ void main(int argc, char **argv) {
 	//Set map to tilemap B, clear tilemap, set attr to 0
 	//Not sure yet what attr does, but tilemap be is important as it will have the effect of layering
 	//on top of our scrolling game
-	fprintf(console, "\0331M\033C\0330A");
+	fprintf(console, "\0331M\033C\0330A\n");
 	//Note that without the newline at the end, all printf's would stay in the buffer.
 
 
