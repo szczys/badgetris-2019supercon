@@ -8,6 +8,12 @@
 #include "gfx_load.h"
 #include "cache.h"
 
+#include "libmidi.h"
+#include "libsynth.h"
+#include "Tetris-hand_edits.h"
+
+
+// the name of the data from the include file
 //The bgnd.png image got linked into the binary of this app, and these two chars are the first
 //and one past the last byte of it.
 extern char _binary_badgetris_bgnd_png_start;
@@ -99,7 +105,10 @@ void tetrapuzz(void)
 	uint32_t buttondebounce = counter60hz();
 
 	while(1)
-		{
+	{
+		// Need tetris tunes.
+        midi_play_song(tetris, sizeof(tetris)/sizeof(uint16_t)/3, BPM(130)); 
+
 		if (counter60hz() > buttondebounce) {
 			//Service button inputs as necessary
 
@@ -148,7 +157,9 @@ void tetrapuzz_loop(void)
 	BOX_dn();
 
 	if (BOX_end_game())
-		{
+	{
+		// Stop audio
+		synth_all_off();
 		//Print game ending information
 		BOX_show_gameover();
 		//Loop until a button is pushed
@@ -1133,10 +1144,27 @@ void main(int argc, char **argv) {
 	fbmem=malloc(320*512/2);
 
 	for (uint8_t i=0; i<16;i++) {
-		MISC_REG(MISC_LED_REG)=(i<<i);
-		__INEFFICIENT_delay(100);
+		MISC_REG(MISC_LED_REG)=(1<<i);
+		__INEFFICIENT_delay(20);
 	}
 
+	// Configure the audio synthesizer
+	synth_init(5);
+	// Default triangle-wave voices are fine for the high pitches, maybe with a snappier envelope
+	for (uint8_t i=0; i<3; i++){
+		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_TRIANGLE;
+		synth_now->voice[i].attack = 0x0088;
+		synth_now->voice[i].decay  = 0x0020;
+		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(192,192);
+	}
+	
+	// But a sawtooth, cello-esque thing is nice in the bass
+	for (uint8_t i=3; i<5; i++){
+		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_SAWTOOTH	;
+		synth_now->voice[i].attack = 0x0040;
+		synth_now->voice[i].decay  = 0x0040;
+		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(64,64);
+	}
 
 	//Set up the framebuffer address.
 	GFX_REG(GFX_FBADDR_REG)=((uint32_t)fbmem)&0xFFFFFF;
@@ -1204,5 +1232,6 @@ void main(int argc, char **argv) {
 	 */
 
 	tetrapuzz();
+	synth_all_off();
 	return;
 }
