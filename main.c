@@ -12,6 +12,7 @@
 #include "libsynth.h"
 #include "Tetris-hand_edits.h"
 
+
 // the name of the data from the include file
 //The bgnd.png image got linked into the binary of this app, and these two chars are the first
 //and one past the last byte of it.
@@ -106,7 +107,7 @@ void tetrapuzz(void)
 	while(1)
 	{
 		// Need tetris tunes.
-        midi_play_song(tetris, SONGLENGTH(tetris), BPM(130)); 
+        midi_play_song(tetris, sizeof(tetris)/sizeof(uint16_t)/3, BPM(130)); 
 
 		if (counter60hz() > buttondebounce) {
 			//Service button inputs as necessary
@@ -1151,8 +1152,9 @@ void main(int argc, char **argv) {
 	synth_init(5);
 	// Default triangle-wave voices are fine for the high pitches, maybe with a snappier envelope
 	for (uint8_t i=0; i<3; i++){
+		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_TRIANGLE;
 		synth_now->voice[i].attack = 0x0088;
-		synth_now->voice[i].decay  = 0x0030;
+		synth_now->voice[i].decay  = 0x0020;
 		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(192,192);
 	}
 	

@@ -7,7 +7,6 @@
 
 #include "mach_defines.h"
 #include "mach_interrupt.h"
-/* #include "cache.h" */
 
 /* Register definitions */
 #define SYNTH_VOICE_CTRL_ENABLE		(1 << 0)
@@ -15,11 +14,15 @@
 #define SYNTH_VOICE_CTRL_SAWTOOTH	(0 << 2)
 #define SYNTH_VOICE_CTRL_TRIANGLE	(1 << 2)
 #define SYNTH_VOICE_CTRL_PULSE		(2 << 2)
-#define SYNTH_VOICE_CTRL_SUBHARMONIC	(3 << 2)
-#define SYNTH_VOICE_CTRL_WT4K_FWD	(4 << 2)
-#define SYNTH_VOICE_CTRL_WT4K_FWD_REV	(5 << 2)
-#define SYNTH_VOICE_CTRL_WT2K_FWD	(6 << 2)
-#define SYNTH_VOICE_CTRL_WT2K_FWD_REV	(7 << 2)
+#define SYNTH_VOICE_CTRL_SUBOCTAVE	(3 << 2)
+
+#define SYNTH_VOICE_CTRL_WT_FWDREV	(1 << 8)
+#define SYNTH_VOICE_CTRL_WT_ENABLE	(1 << 7)
+#define SYNTH_VOICE_CTRL_WT_BASE(n)	(((n) >> 9) << 4)	/* 512 aligned */
+#define SYNTH_VOICE_CTRL_WT_LEN_512	(3 << 2)
+#define SYNTH_VOICE_CTRL_WT_LEN_1024	(2 << 2)
+#define SYNTH_VOICE_CTRL_WT_LEN_2048	(1 << 2)
+#define SYNTH_VOICE_CTRL_WT_LEN_4096	(0 << 2)
 
 #define SYNTH_VOICE_VOLUME(l,r)		(((l)<<8) | (r))
 
@@ -95,10 +98,3 @@ static volatile uint32_t *     const synth_wt    = (void*)((AUDIO_CORE_BASE) + 0
 static volatile struct synth * const synth_now   = (void*)((AUDIO_CORE_BASE) + 0x20000);
 static volatile struct synth * const synth_queue = (void*)((AUDIO_CORE_BASE) + 0x30000);
 
-/* Higher-level synthesizer utility functions begin here */
-
-// Sets up numvoices to bland triangle waves
-void synth_init(uint8_t numvoices);
-
-// Turns all voices off, now.
-void synth_all_off();
