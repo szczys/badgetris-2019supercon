@@ -1018,6 +1018,15 @@ void BOX_line_check(void)
 	//If there are complete rows
 		//TODO: Disable interrupts to pause game flow
 		//TODO: Add an arbitrary delay, perhaps make complete lines flash?
+	//Turn LEDs on, wait, turn LEDs off
+	for (uint8_t i=0; i<8; i++) {
+		//LEDs on
+		MISC_REG(MISC_LED_REG) |= 0b111111;
+		__INEFFICIENT_delay(20);
+		//LEDs off
+		MISC_REG(MISC_LED_REG) &= ~(0b111111);
+		__INEFFICIENT_delay(20);
+	}
 
 	score += temp_index; //Add the completed rows to our score
 
