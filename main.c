@@ -1160,10 +1160,8 @@ void main(int argc, char **argv) {
 	//Allocate framebuffer memory
 	fbmem=malloc(320*512/2);
 
-	for (uint8_t i=0; i<16;i++) {
-		MISC_REG(MISC_LED_REG)=(1<<i);
-		__INEFFICIENT_delay(20);
-	}
+	//Shut off LEDs
+	MISC_REG(MISC_LED_REG)=0x00;
 
 	// Configure the audio synthesizer
 	synth_init(5);
