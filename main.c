@@ -1167,9 +1167,10 @@ void main(int argc, char **argv) {
 	synth_init(5);
 	// Default triangle-wave voices are fine for the high pitches, maybe with a snappier envelope
 	for (uint8_t i=0; i<3; i++){
-		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_TRIANGLE;
+		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_PULSE;
 		synth_now->voice[i].attack = 0x0088;
 		synth_now->voice[i].decay  = 0x0020;
+		synth_now->voice[i].phase_cmp = (1 << 13);
 		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(192,192);
 	}
 	
@@ -1178,7 +1179,7 @@ void main(int argc, char **argv) {
 		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_SAWTOOTH	;
 		synth_now->voice[i].attack = 0x0040;
 		synth_now->voice[i].decay  = 0x0040;
-		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(64,64);
+		synth_now->voice[i].volume = SYNTH_VOICE_VOLUME(192,192);
 	}
 
 	//Set up the framebuffer address.
