@@ -95,6 +95,8 @@ uint32_t counter60hz(void) {
 uint32_t  wait_until;
 uint8_t drop_timer_flag = 0;
 uint16_t state;
+uint8_t audio_on = 1;
+#define SYNTHVOICES 5
 
 int8_t sstr[3];
 
@@ -108,7 +110,7 @@ void tetrapuzz(void)
 	while(1)
 	{
 		// Need tetris tunes.
-        midi_play_song(tetris, sizeof(tetris)/sizeof(uint16_t)/3, BPM(130)); 
+        if (audio_on) { midi_play_song(tetris, sizeof(tetris)/sizeof(uint16_t)/3, BPM(130)); }
 
 		if (counter60hz() > buttondebounce) {
 			//Service button inputs as necessary
@@ -136,6 +138,11 @@ void tetrapuzz(void)
 				buttondebounce = counter60hz()+(BUTTON_READ_DELAY); //prevent multiple button reads
 				//Reset drop timer to prevent jitter if you hold the down button
 				wait_until = counter60hz()+BOX_get_delay();
+			}
+			if ((MISC_REG(MISC_BTN_REG) & BUTTON_START)) {
+				if (audio_on) { synth_all_off(); audio_on = 0; }
+				else { synth_init(SYNTHVOICES); audio_on = 1; }
+				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
 			}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_SELECT)) {	return;	}
 		}
@@ -1164,7 +1171,7 @@ void main(int argc, char **argv) {
 	MISC_REG(MISC_LED_REG)=0x00;
 
 	// Configure the audio synthesizer
-	synth_init(5);
+	synth_init(SYNTHVOICES);
 	// Default triangle-wave voices are fine for the high pitches, maybe with a snappier envelope
 	for (uint8_t i=0; i<3; i++){
 		synth_now->voice[i].ctrl   = SYNTH_VOICE_CTRL_ENABLE | SYNTH_VOICE_CTRL_PULSE;
