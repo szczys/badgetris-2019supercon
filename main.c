@@ -37,8 +37,8 @@ extern volatile uint32_t GFXREG[];
 uint32_t *GFXSPRITES = (uint32_t *)0x5000C000;
 
 //Used to debounce buttons
-#define BUTTON_READ_DELAY		8
-#define BUTTON_SLOW_REPEAT		BUTTON_READ_DELAY*4
+#define BUTTON_READ_DELAY		15
+#define BUTTON_FAST_REPEAT		BUTTON_READ_DELAY/2
 
 //Borrowed this from lcd.c until a better solution comes along :/
 static void __INEFFICIENT_delay(int n) {
@@ -127,13 +127,13 @@ void tetrapuzz(void)
 			}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_DOWN)) {
 				BOX_dn();
-				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
+				buttondebounce = counter60hz()+BUTTON_FAST_REPEAT; //prevent multiple button reads
 				//Reset drop timer to prevent jitter if you hold the down button
 				wait_until = counter60hz()+BOX_get_delay();
 			}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_B)) {
 				while(BOX_dn() == 0) ;;  //Do nothing until piece has fully dropped
-				buttondebounce = counter60hz()+(BUTTON_SLOW_REPEAT); //prevent multiple button reads
+				buttondebounce = counter60hz()+(BUTTON_READ_DELAY); //prevent multiple button reads
 				//Reset drop timer to prevent jitter if you hold the down button
 				wait_until = counter60hz()+BOX_get_delay();
 			}
