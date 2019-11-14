@@ -94,7 +94,6 @@ uint32_t counter60hz(void) {
 uint32_t  wait_until;
 uint8_t drop_timer_flag = 0;
 uint16_t state;
-uint8_t newspawn = 0;
 
 int8_t sstr[3];
 
@@ -132,10 +131,7 @@ void tetrapuzz(void)
 				wait_until = counter60hz()+BOX_get_delay();
 			}
 			if ((MISC_REG(MISC_BTN_REG) & BUTTON_B)) {
-				while(newspawn < 1) {
-					BOX_dn();
-				}
-				newspawn = 0;
+				while(BOX_dn() == 0) ;;  //Do nothing until piece has fully dropped
 				buttondebounce = counter60hz()+BUTTON_READ_DELAY; //prevent multiple button reads
 				//Reset drop timer to prevent jitter if you hold the down button
 				wait_until = counter60hz()+BOX_get_delay();
@@ -628,7 +624,6 @@ void BOX_erase(uint8_t X, uint8_t Y)
 
 void BOX_pregame(void)
 	{
-	newspawn = 0;
 	//Draw frame around grid
 	for (uint8_t vert = 0; vert<20; vert++)
 	{
@@ -1104,7 +1099,7 @@ void BOX_up(void)
 	BOX_spawn();
 	}
 
-void BOX_dn(void)
+uint8_t BOX_dn(void)
 	{
 	if (BOX_check(0, 1))
 		{
@@ -1113,8 +1108,7 @@ void BOX_dn(void)
 		BOX_line_check();
 		BOX_spawn();
 		BOX_update_score();
-		++newspawn; //dirty global var hack to add "drop piece immediately" to the game.
-		return;
+		return 1; //Return non-zero if a new piece was spawned.
 		}
 
 	BOX_clear_loc();
@@ -1124,6 +1118,7 @@ void BOX_dn(void)
 	BOX_store_loc();
 	BOX_write_piece();
 	BOX_update_screen();
+	return 0;
 	}
 
 void BOX_lt(void)

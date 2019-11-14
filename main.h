@@ -34,6 +34,6 @@ void BOX_spawn(void);
 uint8_t BOX_check(int8_t X_offset, int8_t Y_offset);
 void BOX_line_check(void);
 void BOX_up(void);
-void BOX_dn(void);
+uint8_t BOX_dn(void);
 void BOX_lt(void);
 void BOX_rt(void);
